@@ -18,24 +18,9 @@ let pacmanLeftImage;
 let pacmanRightImage;
 let wallImage;
 
-window.onload = function(){
-    board = document.getElementById("board");
-    board.height = boardheight;
-    board.width= boardwidth;
-    context= board.getContext("2d"); // used for drawin in board
-
-    loadImages();
-    loadMap();
-    //console.log(walls.size);
-    //console.log(foods.size);
-    //console.log(ghosts.size);
-    update();
-    document.addEventListener("keyup", movePacman);
-}
-
-// x =wall , P = pacman, ''=food , O=SKIP
-// ghots: b = blue , o =orange, p=pink, r=red
 const tileMap = [
+    // x =wall , P = pacman, ''=food , O=SKIP
+    // ghots: b = blue , o =orange, p=pink, r=red
     "XXXXXXXXXXXXXXXXXXX",
     "X        X        X",
     "X XX XXX X XXX XX X",
@@ -64,6 +49,27 @@ const foods = new Set();
 const ghosts = new Set();
 let pacman;
 
+const directions = ['U','D','L','R']; 
+
+window.onload = function(){
+    board = document.getElementById("board");
+    board.height = boardheight;
+    board.width= boardwidth;
+    context= board.getContext("2d"); // used for drawin in board
+
+    loadImages();
+    loadMap();
+    //console.log(walls.size);
+    //console.log(foods.size);
+    //console.log(ghosts.size);
+    for (let ghost of ghosts.values()){
+        const newDirection = directions[Math.floor(Math.random()*4)];
+        ghost.updateDirection(newDirection);
+    }
+    update();
+    document.addEventListener("keyup", movePacman);
+}
+
 function loadImages(){
     wallImage = new Image();
     wallImage.src = "imgs/wall.png"
@@ -82,7 +88,7 @@ function loadImages(){
     pacmanDownImage = new Image();
     pacmanDownImage.src = "imgs/pacmanDown.png";
     pacmanLeftImage = new Image();
-    pacmanLeftImage = "imgs/pacmanLeft.png";
+    pacmanLeftImage.src = "imgs/pacmanLeft.png";
     pacmanRightImage = new Image();
     pacmanRightImage.src = "imgs/pacmanRight.png";
 }
@@ -138,6 +144,7 @@ function update(){
 }
 
 function draw(){
+    context.clearRect(0, 0,board.width , board.height);
     context.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height);
     for(let ghost of ghosts.values()){
         context.drawImage(ghost.image , ghost.x , ghost.y , ghost.width, ghost.height);
@@ -154,6 +161,20 @@ function draw(){
 function move(){
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
+    
+    // check wall collision
+    for (let wall of walls.values()){
+        if (collision(pacman, wall)){
+            pacman.x -= pacman.velocityX;
+            pacman.y -= pacman.velocityY;
+            break;
+        }
+    }
+
+    for (let ghost of ghosts.values()){
+        ghost.x += ghost.velocityX;
+        ghost.y += ghost.velocityY;
+    }
 }
 
 function movePacman(e) {
@@ -161,7 +182,7 @@ function movePacman(e) {
         pacman.updateDirection('U');
     }
     else if (e.code == "ArrowDown"|| e.code == "KeyS"){
-        pacman.updatedirection('D');
+        pacman.updateDirection('D');
     }
     else if (e.code == "ArrowLeft"|| e.code == "KeyA"){
         pacman.updateDirection('L');
@@ -169,6 +190,27 @@ function movePacman(e) {
     else if (e.code == "ArrowRight"|| e.code == "KeyD"){
         pacman.updateDirection('R');
     }
+
+    // update pacman  imgs
+    if (pacman.direction == 'U'){
+        pacman.image = pacmanUpImage;
+    }
+    else if (pacman.direction == 'D'){
+        pacman.image = pacmanDownImage;
+    }
+    else if (pacman.direction == 'L'){
+        pacman.image = pacmanLeftImage;
+    }
+    else if (pacman.direction== 'R'){
+        pacman.image = pacmanRightImage;
+    }
+}
+
+function collision(a, b){
+    return a.x < b.x + b.width && 
+           a.x + a.width > b.x &&
+           a.y < b.y + b.height &&
+           a.y + a.height > b.y;
 }
 
 class Block{
@@ -188,8 +230,21 @@ class Block{
     }
 
     updateDirection(direction){
+        const prevDirection = this.direction;
         this.direction = direction ;
         this.updateVelocity();
+        this.x += this.velocityX;
+        this.y += this.velocityY;
+
+        for (let wall of walls.values()){
+            if (collision(this, wall)){
+                this.x -= this.velocityX;
+                this.y -= this.velocityY;
+                this.direction = prevDirection;
+                this.updateVelocity();
+                return;
+            }
+        }
     }
 
     updateVelocity(){
