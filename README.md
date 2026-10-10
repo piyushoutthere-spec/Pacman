@@ -18,5 +18,6 @@ The rest everything is same i have put 3 lives and the score adding system and A
 - Please click this link and it will allow to play the game
 ## Help
 - If the game crashes please reload the browser or pls click the link again and open in new tab.
+- https://piyushoutthere-spec.github.io/Pacman/
 ## License
 - The project is made for personal use.
