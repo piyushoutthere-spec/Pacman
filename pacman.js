@@ -89,7 +89,7 @@ window.onload = function(){
         this.style.display="none";
         update();
     });
-    document.addEventListener("keyup",movePacman);
+    document.addEventListener("keydown",movePacman);
 }
 
 function loadImages(){
@@ -195,6 +195,14 @@ function draw(){
 function move(){
     pacman.x += pacman.velocityX;
     pacman.y += pacman.velocityY;
+
+    // side tunnel
+    if (pacman.x + pacman.width <= 0){
+        pacman.x = boardwidth - pacman.width;
+    }
+    else if (pacman.x >= boardwidth){
+        pacman.x = 0;
+    }
     
     // check wall collision
     for (let wall of walls.values()){
