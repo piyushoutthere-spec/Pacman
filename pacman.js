@@ -30,6 +30,7 @@ window.onload = function(){
     //console.log(foods.size);
     //console.log(ghosts.size);
     update();
+    document.addEventListener("keyup", movePacman);
 }
 
 // x =wall , P = pacman, ''=food , O=SKIP
@@ -122,7 +123,7 @@ function loadMap(){
             else if (tileMapChar == 'P'){
                 pacman = new Block(pacmanRightImage , x ,y , tileSize, tileSize);
             }
-            else if (tileMapChar == ''){
+            else if (tileMapChar == ' '){
                 const food = new Block(null, x + 14 , y+14, 4, 4);
                 foods.add(food);
             }             
@@ -131,6 +132,7 @@ function loadMap(){
 }
 
 function update(){
+    move();
     draw();
     setTimeout(update, 50); //20 FPS 1 -> 1000ms/20 = 50
 }
@@ -143,7 +145,32 @@ function draw(){
     for (let wall of walls.values()){
         context.drawImage(wall.image , wall.x , wall.y , wall.width , wall.height);
     }
+    context.fillStyle = "white";
+    for (let food of foods.values()){
+        context.fillRect(food.x, food.y , food.width , food.height);
+    }
 }
+
+function move(){
+    pacman.x += pacman.velocityX;
+    pacman.y += pacman.velocityY;
+}
+
+function movePacman(e) {
+    if (e.code == "ArrowUp" || e.code == "KeyW"){
+        pacman.updateDirection('U');
+    }
+    else if (e.code == "ArrowDown"|| e.code == "KeyS"){
+        pacman.updatedirection('D');
+    }
+    else if (e.code == "ArrowLeft"|| e.code == "KeyA"){
+        pacman.updateDirection('L');
+    }
+    else if (e.code == "ArrowRight"|| e.code == "KeyD"){
+        pacman.updateDirection('R');
+    }
+}
+
 class Block{
     constructor(image ,x, y, width , height){
         this.image = image;
@@ -154,5 +181,33 @@ class Block{
 
         this.startX= x;
         this.startY= y;
+
+        this.direction = 'R';
+        this.velocityX= 0;
+        this.velocityY= 0;
+    }
+
+    updateDirection(direction){
+        this.direction = direction ;
+        this.updateVelocity();
+    }
+
+    updateVelocity(){
+        if (this.direction == 'U'){
+            this.velocityX = 0;
+            this.velocityY = -tileSize/4;
+        }
+        else if (this.direction =='D'){
+            this.velocityX = 0;
+            this.velocityY = tileSize/4;
+        }
+        else if (this.direction == 'L'){
+            this.velocityX = -tileSize/4;
+            this.velocityY= 0;
+        }
+        else if (this.direction == 'R'){
+            this.velocityX = tileSize/4;
+            this.velocityY = 0;
+        }
     }
 }
