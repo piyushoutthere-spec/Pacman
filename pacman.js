@@ -3,8 +3,8 @@ let board;
 const rowCount = 21;
 const columnCount= 19;
 const tileSize= 31;
-const boardwidth = columnCount*titleSize;
-const boardheight = rowCount*titleSize;
+const boardwidth = columnCount*tileSize;
+const boardheight = rowCount*tileSize;
 let context;
 
 //imgs
@@ -25,6 +25,11 @@ window.onload = function(){
     context= board.getContext("2d"); // used for drawin in board
 
     loadImages();
+    loadMap();
+    //console.log(walls.size);
+    //console.log(foods.size);
+    //console.log(ghosts.size);
+    update();
 }
 
 // x =wall , P = pacman, ''=food , O=SKIP
@@ -100,12 +105,45 @@ function loadMap(){
             }
             else if (tileMapChar == 'b'){
                 const ghost = new Block(blueGhostImage, x , y , tileSize, tileSize);
-                ghost.add(ghost);
+                ghosts.add(ghost);
             }
+            else if (tileMapChar == 'o'){
+                const ghost = new Block(OrangeGhostImage , x ,y , tileSize, tileSize);
+                ghosts.add(ghost);
+            }
+            else if (tileMapChar == 'p'){
+                const ghost = new Block(pinkGhostImage , x ,y , tileSize, tileSize);
+                ghosts.add(ghost);
+            }
+            else if (tileMapChar == 'r'){
+                const ghost = new Block(redGhostImage , x ,y , tileSize, tileSize);
+                ghosts.add(ghost)
+            }
+            else if (tileMapChar == 'P'){
+                pacman = new Block(pacmanRightImage , x ,y , tileSize, tileSize);
+            }
+            else if (tileMapChar == ''){
+                const food = new Block(null, x + 14 , y+14, 4, 4);
+                foods.add(food);
+            }             
         }
     }
 }
 
+function update(){
+    draw();
+    setTimeout(update, 50); //20 FPS 1 -> 1000ms/20 = 50
+}
+
+function draw(){
+    context.drawImage(pacman.image, pacman.x, pacman.y, pacman.width, pacman.height);
+    for(let ghost of ghosts.values()){
+        context.drawImage(ghost.image , ghost.x , ghost.y , ghost.width, ghost.height);
+    }
+    for (let wall of walls.values()){
+        context.drawImage(wall.image , wall.x , wall.y , wall.width , wall.height);
+    }
+}
 class Block{
     constructor(image ,x, y, width , height){
         this.image = image;
