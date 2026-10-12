@@ -16,6 +16,7 @@ let pacmanUpImage;
 let pacmanDownImage;
 let pacmanLeftImage;
 let pacmanRightImage;
+let cherryimg;
 let wallImage;
 
 const tileMap = [
@@ -54,6 +55,8 @@ let score = 0;
 let lives = 3;
 let gameOver = false;
 let GS = false;
+let fruit = null;
+let fruitTimer=0;
 
 window.onload = function(){
     board = document.getElementById("board");
@@ -84,6 +87,8 @@ window.onload = function(){
         resetPositions();
         lives = 3;
         score = 0;
+        fruit = null;
+        fruitTimer=0;
         gameOver = false;
         GS = true;
         this.style.display="none";
@@ -113,6 +118,8 @@ function loadImages(){
     pacmanLeftImage.src = "imgs/pacmanLeft.png";
     pacmanRightImage = new Image();
     pacmanRightImage.src = "imgs/pacmanRight.png";
+    cherryimg = new Image();
+    cherryimg.src = "imgs/cherry.png";
 }
 
 function loadMap(){
@@ -181,6 +188,15 @@ function draw(){
     for (let food of foods.values()){
         context.fillRect(food.x, food.y , food.width , food.height);
     }
+    if(fruit !== null && cherryimg.complete && cherryimg.naturalWidth>0){
+        context.drawImage(
+            cherryimg,
+            fruit.x,
+            fruit.y,
+            fruit.width,
+            fruit.height
+        );
+    }
     //score
     context.fillStyle= "white";
     context.font=" 14px sans-serif";
@@ -189,6 +205,48 @@ function draw(){
     }
     else {
         context.fillText("x" + String(lives)+" "+String(score),tileSize/2, tileSize/2);
+    }
+}
+
+function spawnfruit(){
+    const emptyTiles=[];
+    
+    for (let r=1; r<rowCount-1;r++){
+        for (let c =1; c< columnCount-1;c++){
+            const x = c*tileSize;
+            const y = r*tileSize;
+
+            const tile={
+                x:x,
+                y:y,
+                width: tileSize,
+                height: tileSize
+            };
+
+            let blocked = false;
+            // not in wall
+            for (let wall of walls){
+                if(collision(tile,wall)){
+                    blocked = true;
+                    break;
+                }
+            }
+            if(!blocked){
+                emptyTiles.push({x:x,y:y});
+            }
+        }
+    }
+    if (emptyTiles.length>0){
+        const randomTile=
+        emptyTiles[Math.floor(Math.random()*emptyTiles.length)];
+        fruit = new Block(
+            cherryimg,
+            randomTile.x,
+            randomTile.y,
+            tileSize,
+            tileSize
+        );
+        fruitTimer=100;
     }
 }
 
@@ -251,6 +309,23 @@ function move(){
         }
     }
     foods.delete(foodEaten);
+
+    // spawns bonus cherry
+    if (fruit=== null && Math.random()<0.05){
+        spawnfruit();
+    }
+    // bonus
+    if (fruit !== null){
+        fruitTimer--;
+
+        if(fruitTimer<=0){
+            fruit = null;
+        }
+        else if(collision(pacman,fruit)){
+            score +=50;
+            fruit=null;
+        }
+    }
 
     //next level
     if (foods.size == 0){
