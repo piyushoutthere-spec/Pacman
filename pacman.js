@@ -335,6 +335,7 @@ function move(){
 }
 
 function movePacman(e) {
+    if (e.repeat) return;
     if (!GS){
         return;
     }
